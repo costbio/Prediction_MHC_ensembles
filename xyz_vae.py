@@ -1,12 +1,3 @@
-'''
-- GELU activations
-- Residual MLP blocks
-- Dropout
-- LayerNorm
-- StandardScaler instead of MinMax
-- Huber reconstruction loss
-- KL annealing
-'''
 import os
 import argparse
 import numpy as np
