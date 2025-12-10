@@ -1,7 +1,3 @@
-"""
-Optimized XYZ-VAE Pipeline
---------------------------
-Uses:
 - GELU activations
 - Residual MLP blocks
 - Dropout
@@ -9,8 +5,6 @@ Uses:
 - StandardScaler instead of MinMax
 - Huber reconstruction loss
 - KL annealing
-"""
-
 import os
 import argparse
 import numpy as np
@@ -60,7 +54,7 @@ def split_dataset(coords, train_ratio=0.8, val_ratio=0.1, seed=42):
 
 
 # ============================================================
-# 3) SCALE (StandardScaler)
+# 3) SCALE
 # ============================================================
 def scale_data(x_train, x_val, x_test):
     scaler = StandardScaler()
@@ -105,7 +99,7 @@ class KLAnnealingCallback(tf.keras.callbacks.Callback):
         self.kl_layer.kl_beta = float(beta)
 
 # ============================================================
-# 6) VAE Loss Layer (Huber + KL)
+# 6) VAE Loss Layer 
 # ============================================================
 class VAELossLayer(layers.Layer):
     def __init__(self, kl_beta=1e-3):
@@ -138,7 +132,7 @@ def mlp_block(x, units, dropout=0.1):
 
 
 # ============================================================
-# 8) Build Optimized XYZ-VAE
+# 8) XYZ-VAE
 # ============================================================
 def build_xyz_vae(input_dim, latent_dim=64, kl_beta=2e-5):
 
