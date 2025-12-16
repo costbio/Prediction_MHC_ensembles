@@ -1,7 +1,7 @@
 # XYZ-VAE: Variational Autoencoder for Protein Conformational Analysis
 
 ## Overview
-This repository contains an end-to-end deep learning pipeline for **learning and reconstructing protein backbone conformations** from molecular dynamics (MD) trajectories using a **Variational Autoencoder (VAE)**.
+This repository contains an end-to-end deep learning pipeline for **learning and reconstructing protein backbone conformations** from molecular dynamics (MD) trajectories using a **Variational Autoencoder (VAE)**. The goal of this model is not to reproduce molecular dynamics trajectories, but to learn the conformational ensemble of a protein from precomputed MD simulations. Once trained, the VAE enables fast sampling of structurally plausible conformations, providing an efficient alternative for exploring conformational diversity without running additional long MD simulations.
 
 The model operates directly on flattened **Cartesian XYZ coordinates** extracted from MD trajectories (`.xtc`) and is designed to:
 - Learn a compact latent representation of protein conformational space
