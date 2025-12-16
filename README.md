@@ -8,7 +8,7 @@ The model operates directly on flattened **Cartesian XYZ coordinates** extracted
 - Reconstruct physically plausible backbone trajectories
 - Quantitatively evaluate generated structures using RMSD
 
-This is **not** a toy autoencoder. The pipeline includes alignment, scaling, KL annealing, residual MLP blocks, trajectory reconstruction, and structural validation.
+The pipeline includes alignment, scaling, KL annealing, residual MLP blocks, trajectory reconstruction, and structural validation.
 
 ---
 
@@ -155,28 +155,15 @@ Generated trajectories can be visualized directly in **VMD** and compared agains
 
 ---
 
-## Design Choices (Read This)
+## Design Choices 
 
 - **XYZ coordinates instead of internal coordinates**: simpler pipeline, but rotational/translation invariance must be handled explicitly (alignment step is mandatory).
 - **StandardScaler** instead of MinMax: better behaved gradients for deep MLPs.
 - **Residual MLP blocks**: stabilizes deep fully-connected architectures.
 - **No temporal modeling**: each frame is treated independently. This is intentional.
 
-If you expect temporal coherence, this model will disappoint you.
-
 ---
 
-## Limitations
-
-Be honest about what this model does *not* do:
-- No time dependency (not LSTM / Transformer)
-- No bond/angle constraints enforced
-- No energy-based regularization
-- Reconstruction ≠ physically valid dynamics
-
-This is a **representation learning** model, not a simulator.
-
----
 
 ## Possible Extensions
 
@@ -186,12 +173,4 @@ If you want to make this actually stronger:
 - Include physics-based losses (distance restraints)
 - Perform latent space interpolation and clustering
 - Compare against PCA / tICA baselines
-
----
-
-## Author Notes
-
-This project is intended for **research and experimentation** in protein conformational learning. If you use it in a thesis or publication, document the assumptions clearly.
-
-If you don't understand *why* each step exists, don't trust the results.
 
