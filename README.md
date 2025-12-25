@@ -3,7 +3,7 @@
 
 # XYZ-VAE
 
-### Learning Protein Conformational Ensembles from Limited Molecular Dynamics Data
+### Deep Learning-based Prediction of Protein Conformational Ensembles
 
 ## Overview
 
