@@ -18,10 +18,6 @@ A central objective of this work is to **quantify how much MD data is minimally 
 ## Scientific Motivation
 
 Molecular dynamics simulations are computationally expensive, especially for large proteins or long timescales.
-In practice, researchers often face the question:
-
-> *How much MD simulation is actually enough?*
-
 This project investigates whether:
 
 * A generative deep learning model can learn a protein’s conformational ensemble
@@ -32,7 +28,7 @@ The problem is framed as a **minimum-data analysis** rather than pure performanc
 
 ---
 
-## Core Contributions
+## Contributions
 
 * End-to-end VAE pipeline operating directly on flattened XYZ coordinates
 * Residual MLP-based encoder–decoder architecture with controlled capacity
@@ -148,7 +144,7 @@ This allows direct analysis of:
 
 ---
 
-## Results Summary (Qualitative)
+## Results Summary 
 
 * Reconstruction quality improves rapidly up to ~40% of data
 * Beyond this point, gains saturate
