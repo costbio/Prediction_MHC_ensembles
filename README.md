@@ -169,7 +169,12 @@ These results suggest that **a substantial portion of the conformational ensembl
 │   └── annealing.py          # KL beta schedule
 ├── analysis/
 │   ├── rmsd.py               # RMSD evaluation
-│   └── save_xtc.py           # XTC generation
+│   ├── save_xtc.py           # XTC generation
+|   └── outputs.py            # Graphes of loss values
+├── utils/
+|   └── seed.py               # Seed
+├── notebook/
+|   └── 3UTQ_run.ipynb        # example for 3UTQ protein
 ├── run_pipeline.py           # main execution script
 └── README.md
 ```
