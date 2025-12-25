@@ -173,8 +173,6 @@ These results suggest that **a substantial portion of the conformational ensembl
 |   └── outputs.py            # Graphes of loss values
 ├── utils/
 |   └── seed.py               # Seed
-├── notebook/
-|   └── 3UTQ_run.ipynb        # example for 3UTQ protein
 ├── run_pipeline.py           # main execution script
 └── README.md
 ```
