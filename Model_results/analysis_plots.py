@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # ==========================
 # RMSD
@@ -17,7 +18,7 @@ def plot_rmsd(rmsd_ref, rmsd_gen):
 
 
 # ==========================
-# RMSF
+# RMSFsave_array_txt
 # ==========================
 def plot_rmsf(res_ids, rmsf_ref, rmsf_gen):
     fig, ax = plt.subplots(figsize=(8,4))
@@ -132,3 +133,13 @@ def plot_pca(X_ref_pca, X_gen_pca):
     ax.set_title("PCA Projection (MD fit)")
     ax.legend()
     return fig
+
+
+
+def _ensure_dir(path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+def save_figure(fig, path, dpi=300):
+    _ensure_dir(path)
+    fig.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
