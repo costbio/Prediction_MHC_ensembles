@@ -34,10 +34,10 @@ def run_pipeline(
     rep_num,
     atom_selection,
     out_dir,
-    latent_dim=16,
+    latent_dim=8,
     epochs=300,
     batch_size=64,
-    kl_beta=1e-3,
+    kl_beta=5e-5,
     use_all_frames=True,
     shuffle_learn=True,
     seed=42,
@@ -162,10 +162,10 @@ if __name__ == "__main__":
     parser.add_argument("--pdb", required=True)
     parser.add_argument("--atom_sel", default="name CA")
     parser.add_argument("--out_dir", default="xyz_vae_results")
-    parser.add_argument("--latent_dim", type=int, default=16)
+    parser.add_argument("--latent_dim", type=int, default=8)
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--kl_beta", type=float, default=1e-3)
+    parser.add_argument("--kl_beta", type=float, default=5e-5)
 
     args = parser.parse_args()
 
