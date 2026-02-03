@@ -3,40 +3,63 @@ import numpy as np
 import torch
 import json
 
-def plot_training_dynamics(history, save_path=None, suptitle=None):
-    epochs = np.arange(len(history["train_recon"]))
+def plot_training_dynamics_reps(
+    histories,  # dict: {"rep_0": history, ...}
+    save_path=None,
+    suptitle=None
+):
+    epochs = np.arange(len(next(iter(histories.values()))["train_recon"]))
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharex=True)
+    fig, axes = plt.subplots(1, 2, figsize=(15, 4), sharex=True)
 
-
-    if suptitle is not None:
+    if suptitle:
         fig.suptitle(suptitle, fontsize=14, y=1.05)
 
-    # 1️⃣ Reconstruction
-    axes[0].plot(epochs, history["train_recon"], label="Train")
-    axes[0].plot(epochs, history["val_recon"], label="Val")
+    for rep_name, history in histories.items():
+        # Recon
+        axes[0].plot(
+            epochs,
+            history["train_recon"],
+            label=f"{rep_name} Train",
+            alpha=0.8
+        )
+        axes[0].plot(
+            epochs,
+            history["val_recon"],
+            linestyle="--",
+            label=f"{rep_name} Val",
+            alpha=0.8
+        )
+
+        # KL
+        axes[1].plot(
+            epochs,
+            history["train_kl"],
+            label=f"{rep_name} Train",
+            alpha=0.8
+        )
+        axes[1].plot(
+            epochs,
+            history["val_kl"],
+            linestyle="--",
+            label=f"{rep_name} Val",
+            alpha=0.8
+        )
+
     axes[0].set_title("Reconstruction Loss")
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Loss")
-    axes[0].legend()
+    axes[0].legend(fontsize=8)
     axes[0].grid(True)
 
-    # 2️⃣ KL
-    axes[1].plot(epochs, history["train_kl"], label="Train")
-    axes[1].plot(epochs, history["val_kl"], label="Val")
     axes[1].set_title("KL Divergence")
     axes[1].set_xlabel("Epoch")
+    axes[1].legend(fontsize=8)
     axes[1].grid(True)
-
-    # 3️⃣ Beta
-    axes[2].plot(epochs, history["beta"], label="Beta")
-    axes[2].set_title("Beta Schedule")
-    axes[2].set_xlabel("Epoch")
-    axes[2].grid(True)
 
     plt.tight_layout()
 
-    if save_path is not None:
+    if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close()
     else:
@@ -44,87 +67,70 @@ def plot_training_dynamics(history, save_path=None, suptitle=None):
 
 
 fractions = list(range(10, 90, 10))
+def model_accuracy_results_combined(experiment_dirs):
+    for frac in fractions:
+        histories = {}
 
-def model_accuracy_results(out_dir,out_dir_1, out_dir_2):
-    experiment_dirs = {
-        "rep_0": out_dir,
-        "rep_1": out_dir_1,
-        "rep_2": out_dir_2,
-    }
-
-    for rep_name, base_dir in experiment_dirs.items():
-
-        for frac in fractions:
+        for rep_name, base_dir in experiment_dirs.items():
             history_path = f"{base_dir}/fraction_{frac}/history_{frac}.npy"
-            save_path = f"{base_dir}/fraction_{frac}/training_dynamics.png"
+            histories[rep_name] = np.load(
+                history_path, allow_pickle=True
+            ).item()
 
-            history = np.load(history_path, allow_pickle=True).item()
+        plot_training_dynamics_reps(
+            histories,
+            save_path=f"{list(experiment_dirs.values())[0]}/fraction_{frac}/training_dynamics_all_reps.png",
+            suptitle=f"Training Dynamics (Fraction = {frac/100:.1f})"
+        )
 
-            plot_training_dynamics(
-                history,
-                save_path=save_path,
-                suptitle=f"{rep_name} | Training Dynamics (Data Fraction = {frac/100:.1f})"
-            )
-    return experiment_dirs
-
-def model_performance_results(experiment_dirs):
+def model_performance_results_combined(experiment_dirs):
     fractions_float = [f / 100 for f in fractions]
 
-    for rep_name, base_dir in experiment_dirs.items():
+    metrics = {}
 
+    for rep_name, base_dir in experiment_dirs.items():
         best_val_recon = []
         best_epochs = []
         prior_std = []
 
-        # --- load prior std ---
         with open(f"{base_dir}/decoder_prior_std.json", "r") as f:
             prior_std_dict = json.load(f)
 
         for frac in fractions:
             frac_dir = f"{base_dir}/fraction_{frac}"
-
             ckpt = torch.load(f"{frac_dir}/best.ckpt", map_location="cpu")
+
             best_val_recon.append(ckpt["best_val_recon"])
             best_epochs.append(ckpt["epoch"])
             prior_std.append(prior_std_dict[str(frac)])
 
-        # ===============================
-        # SINGLE SUMMARY FIGURE
-        # ===============================
-        fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharex=True)
+        metrics[rep_name] = {
+            "recon": best_val_recon,
+            "epoch": best_epochs,
+            "std": prior_std
+        }
 
-        # --- (1) Recon ---
-        axes[0].plot(fractions_float, best_val_recon, marker="o")
-        axes[0].set_xlabel("Training Data Fraction")
-        axes[0].set_ylabel("Best Val Recon Loss")
-        axes[0].set_title("Reconstruction")
-        axes[0].grid(True)
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharex=True)
 
-        # --- (2) Epoch ---
-        axes[1].plot(fractions_float, best_epochs, marker="o")
-        axes[1].set_xlabel("Training Data Fraction")
-        axes[1].set_ylabel("Best Epoch")
-        axes[1].set_title("Early Stopping")
-        axes[1].grid(True)
+    for rep_name, m in metrics.items():
+        axes[0].plot(fractions_float, m["recon"], marker="o", label=rep_name)
+        axes[1].plot(fractions_float, m["epoch"], marker="o", label=rep_name)
+        axes[2].plot(fractions_float, m["std"], marker="o", label=rep_name)
 
-        # --- (3) Prior Std ---
-        axes[2].plot(fractions_float, prior_std, marker="o")
-        axes[2].set_xlabel("Training Data Fraction")
-        axes[2].set_ylabel("Decoder Output Std (Å)")
-        axes[2].set_title("Generative Diversity")
-        axes[2].grid(True)
+    axes[0].set_title("Best Val Recon")
+    axes[1].set_title("Best Epoch")
+    axes[2].set_title("Decoder Output Std (Å)")
 
-        fig.suptitle(
-            f"{rep_name}: Model Performance vs Training Data Fraction",
-            fontsize=14,
-            y=1.05
-        )
+    for ax in axes:
+        ax.set_xlabel("Training Data Fraction")
+        ax.grid(True)
+        ax.legend()
 
-        plt.tight_layout()
-        plt.savefig(
-            f"{base_dir}/summary_performance.png",
-            dpi=300,
-            bbox_inches="tight"
-        )
-        plt.close()
-
+    fig.suptitle("Model Performance Across Replicas", fontsize=14, y=1.05)
+    plt.tight_layout()
+    plt.savefig(
+        f"{list(experiment_dirs.values())[0]}/summary_performance_all_reps.png",
+        dpi=300,
+        bbox_inches="tight"
+    )
+    plt.close()
