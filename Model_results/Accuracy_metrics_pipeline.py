@@ -77,43 +77,6 @@ def compute_phi_psi(gen_traj, ref_traj):
 
     return phi_ref_flat, psi_ref_flat, phi_gen_flat, psi_gen_flat
 
-# --------------------------
-# DSSP
-# --------------------------
-def simplify_dssp(dssp):
-    simple = np.copy(dssp)
-    simple[np.isin(simple, ['H', 'G', 'I'])] = 'H'
-    simple[np.isin(simple, ['E', 'B'])] = 'E'
-    simple[np.isin(simple, ['T', 'S'])] = 'C'
-    return simple
-
-def dssp_fraction(dssp, ss_type):
-    return np.mean(dssp == ss_type)
-
-def residue_ss_probability(dssp, ss_type):
-    return np.mean(dssp == ss_type, axis=0)
-
-def dssp_analysis(ref_traj, gen_traj):
-    dssp_ref = simplify_dssp(md.compute_dssp(ref_traj))
-    dssp_gen = simplify_dssp(md.compute_dssp(gen_traj))
-
-    fractions_md = {
-    'H': dssp_fraction(dssp_ref, 'H'),
-    'E': dssp_fraction(dssp_ref, 'E'),
-    'C': dssp_fraction(dssp_ref, 'C')
-    }
-
-    fractions_gen = {
-        'H': dssp_fraction(dssp_gen, 'H'),
-        'E': dssp_fraction(dssp_gen, 'E'),
-        'C': dssp_fraction(dssp_gen, 'C')
-    }
-
-    delta_helix = (
-    residue_ss_probability(dssp_gen, 'H') -
-    residue_ss_probability(dssp_ref, 'H'))
-
-    return dssp_ref,dssp_gen, fractions_md, fractions_gen, delta_helix
 
 # --------------------------
 # Contact maps & similarity
