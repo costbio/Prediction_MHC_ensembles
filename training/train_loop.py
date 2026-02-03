@@ -104,7 +104,7 @@ def train_vae(
                 f"val_kl={val_kl:.4f} "
                 f"beta={beta:.2e}"
             )
-
+        
         # --- MODEL SELECTION + EARLY STOP LOGIC ---
         if val_recon < best_val_recon - min_delta:
             best_val_recon = val_recon
