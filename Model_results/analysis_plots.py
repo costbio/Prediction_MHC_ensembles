@@ -44,7 +44,6 @@ def plot_rg(rg_ref, rg_gen):
     ax.legend()
     return fig
 
-
 # ==========================
 # Ramachandran
 # ==========================
@@ -61,39 +60,6 @@ def plot_ramachandran(phi_ref, psi_ref, phi_gen, psi_gen):
     axes[1].set_xlabel("Phi (deg)")
 
     fig.suptitle("Ramachandran Plot")
-    return fig
-
-
-# ==========================
-# DSSP
-# ==========================
-def plot_dssp_fractions(frac_md, frac_gen):
-    labels = ["H", "E", "C"]
-    md_vals = [frac_md[l] for l in labels]
-    gen_vals = [frac_gen[l] for l in labels]
-
-    x = np.arange(len(labels))
-    width = 0.35
-
-    fig, ax = plt.subplots(figsize=(6,4))
-    ax.bar(x - width/2, md_vals, width, label="MD")
-    ax.bar(x + width/2, gen_vals, width, label="Generated")
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylabel("Fraction")
-    ax.set_title("Secondary Structure Composition")
-    ax.legend()
-    return fig
-
-
-def plot_dssp_delta_helix(delta_helix):
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.plot(delta_helix)
-    ax.axhline(0, color="black", linestyle="--", linewidth=1)
-    ax.set_xlabel("Residue index")
-    ax.set_ylabel("Δ Helix Probability")
-    ax.set_title("Per-residue Helix Probability Difference (Gen − MD)")
     return fig
 
 
