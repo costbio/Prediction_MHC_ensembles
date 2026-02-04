@@ -18,7 +18,7 @@ def plot_rmsd(rmsd_ref, rmsd_gen):
 
 
 # ==========================
-# RMSFsave_array_txt
+# RMSF
 # ==========================
 def plot_rmsf(res_ids, rmsf_ref, rmsf_gen):
     fig, ax = plt.subplots(figsize=(8,4))
