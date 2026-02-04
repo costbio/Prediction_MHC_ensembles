@@ -6,7 +6,7 @@ The ultimate goal is to reproduce the **structural distribution (assembly)** obs
 
 ---
 
-## Core Idea (Clear and Uncompromising)
+## Core Idea 
 
 * Input: MD trajectories aligned to the reference backbone (`.xtc`)
 * Representation: Smoothed Cartesian backbone coordinates
