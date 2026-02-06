@@ -2,127 +2,102 @@ import numpy as np
 import mdtraj as md
 from sklearn.decomposition import PCA
 
-
-
-def data_preprocessing(gen_traj, ref_traj, backbone_pdb):
-    gen_traj = md.load_xtc(gen_traj, top=backbone_pdb)
-    ref_traj = md.load_xtc(ref_traj, top=backbone_pdb)
+# ============================================================
+# LOAD
+# ============================================================
+def load_traj(gen_xtc, ref_xtc, pdb):
+    gen_traj = md.load_xtc(gen_xtc, top=pdb)
+    ref_traj = md.load_xtc(ref_xtc, top=pdb)
     return gen_traj, ref_traj
 
-# --------------------------
-# RMSD analysis
-# --------------------------
 
+# ============================================================
+# RMSD (replica-wise)
+# ============================================================
 def rmsd_internal(gen_traj, ref_traj):
-    idx_align = ref_traj.topology.select("backbone")
+    idx = ref_traj.topology.select("backbone")
 
-    ref_traj.superpose(ref_traj[0], atom_indices=idx_align)
-    gen_traj.superpose(ref_traj[0], atom_indices=idx_align)
+    ref_traj.superpose(ref_traj[0], atom_indices=idx)
+    gen_traj.superpose(ref_traj[0], atom_indices=idx)
 
-    rmsd_ref = md.rmsd(ref_traj, ref_traj[0], atom_indices=idx_align)
-    rmsd_gen = md.rmsd(gen_traj, ref_traj[0], atom_indices=idx_align)
-    rmsd_gen_A = rmsd_gen * 10.0
-    rmsd_ref_A = rmsd_ref * 10.0
+    rmsd_ref = md.rmsd(ref_traj, ref_traj[0], atom_indices=idx) * 10.0
+    rmsd_gen = md.rmsd(gen_traj, ref_traj[0], atom_indices=idx) * 10.0
 
-    return rmsd_gen_A, rmsd_ref_A
+    return rmsd_ref, rmsd_gen
 
 
-# --------------------------
-# RMSF 
-# --------------------------
+# ============================================================
+# RMSF (replica-wise)
+# ============================================================
 def rmsf_md_vs_gen(gen_traj, ref_traj):
     idx_ca = ref_traj.topology.select("name CA")
     idx_align = ref_traj.topology.select("backbone")
-    ref_ref = ref_traj[0]
-    gen_ref = gen_traj[0]
 
-    ref_traj.superpose(ref_ref, atom_indices=idx_align)
-    gen_traj.superpose(gen_ref, atom_indices=idx_align)
+    ref_traj.superpose(ref_traj[0], atom_indices=idx_align)
+    gen_traj.superpose(gen_traj[0], atom_indices=idx_align)
 
-    rmsf_ref = md.rmsf(ref_traj, ref_ref, atom_indices=idx_ca) * 10.0
-    rmsf_gen = md.rmsf(gen_traj, gen_ref, atom_indices=idx_ca) * 10.0
-
+    rmsf_ref = md.rmsf(ref_traj, ref_traj[0], atom_indices=idx_ca) * 10.0
+    rmsf_gen = md.rmsf(gen_traj, gen_traj[0], atom_indices=idx_ca) * 10.0
 
     res_ids = [ref_traj.topology.atom(i).residue.index for i in idx_ca]
-
     return res_ids, rmsf_ref, rmsf_gen
 
 
-# --------------------------
+# ============================================================
 # Radius of gyration
-# --------------------------
+# ============================================================
 def radius_of_gyration(gen_traj, ref_traj):
-    rg_gen = md.compute_rg(gen_traj)
-    rg_ref = md.compute_rg(ref_traj)
-    return rg_gen, rg_ref
+    rg_ref = md.compute_rg(ref_traj) * 10.0
+    rg_gen = md.compute_rg(gen_traj) * 10.0
+    return rg_ref, rg_gen
 
-# --------------------------
-# Dihedrals (phi/psi) and Ramachandran
-# --------------------------
+
+# ============================================================
+# Ramachandran
+# ============================================================
 def compute_phi_psi(gen_traj, ref_traj):
-    phi_ref, psi_ref = md.compute_phi(ref_traj)[1], md.compute_psi(ref_traj)[1]
-    phi_gen, psi_gen = md.compute_phi(gen_traj)[1], md.compute_psi(gen_traj)[1]
+    phi_r, psi_r = md.compute_phi(ref_traj)[1], md.compute_psi(ref_traj)[1]
+    phi_g, psi_g = md.compute_phi(gen_traj)[1], md.compute_psi(gen_traj)[1]
 
-    phi_ref = np.degrees(phi_ref)
-    psi_ref = np.degrees(psi_ref)
-
-    phi_gen = np.degrees(phi_gen)
-    psi_gen = np.degrees(psi_gen)
-
-    phi_ref_flat = phi_ref.flatten()
-    psi_ref_flat = psi_ref.flatten()
-
-    phi_gen_flat = phi_gen.flatten()
-    psi_gen_flat = psi_gen.flatten()
-
-    return phi_ref_flat, psi_ref_flat, phi_gen_flat, psi_gen_flat
-
-
-# --------------------------
-# Contact maps & similarity
-# --------------------------
-
-def compute_contact_map(traj, cutoff=0.8):
-    idx_ca = traj.topology.select("name CA")
-    n_res = len(idx_ca)
-
-    pairs = np.array(
-        [(i, j) for i in range(n_res) for j in range(i+1, n_res)],
-        dtype=int
+    return (
+        np.degrees(phi_r).flatten(),
+        np.degrees(psi_r).flatten(),
+        np.degrees(phi_g).flatten(),
+        np.degrees(psi_g).flatten(),
     )
 
 
-    dist = md.compute_distances(traj, pairs, periodic=False)
+# ============================================================
+# Contact map
+# ============================================================
+def compute_contact_map(traj, cutoff=0.8):
+    idx_ca = traj.topology.select("name CA")
+    n = len(idx_ca)
+
+    pairs = [(i, j) for i in range(n) for j in range(i + 1, n)]
+    dist = md.compute_distances(traj, pairs)
     contacts = dist < cutoff
 
-    contact_freq = np.zeros((n_res, n_res))
-
-    pair_idx = 0
-    for i in range(n_res):
-        for j in range(i+1, n_res):
-            contact_freq[i, j] = contacts[:, pair_idx].mean()
-            contact_freq[j, i] = contact_freq[i, j]
-            pair_idx += 1
-
-    return contact_freq
+    cm = np.zeros((n, n))
+    k = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            cm[i, j] = contacts[:, k].mean()
+            cm[j, i] = cm[i, j]
+            k += 1
+    return cm
 
 
-# --------------------------
-# PCA / t-SNE projection
-# --------------------------
-def pca(gen_traj, ref_traj):
+# ============================================================
+# PCA (MD-fit, replica-wise)
+# ============================================================
+def pca_projection(gen_traj, ref_traj):
+    ca = ref_traj.topology.select("name CA")
 
-    ca_idx_gen = gen_traj.topology.select("name CA")
-    ca_idx_ref = ref_traj.topology.select("name CA")
-
-
-    X_ref = ref_traj.xyz[:, ca_idx_ref, :].reshape(ref_traj.n_frames, -1)
-    X_gen = gen_traj.xyz[:, ca_idx_gen, :].reshape(gen_traj.n_frames, -1)
+    X_ref = ref_traj.xyz[:, ca, :].reshape(ref_traj.n_frames, -1)
+    X_gen = gen_traj.xyz[:, ca, :].reshape(gen_traj.n_frames, -1)
 
     pca = PCA(n_components=2)
     pca.fit(X_ref)
 
-
-    X_ref_pca = pca.transform(X_ref)
-    X_gen_pca = pca.transform(X_gen)
-    return X_ref_pca, X_gen_pca
+    return pca.transform(X_ref), pca.transform(X_gen)
