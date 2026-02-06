@@ -1,111 +1,117 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 
-# ==========================
-# RMSD
-# ==========================
-def plot_rmsd(rmsd_ref, rmsd_gen):
-    fig, ax = plt.subplots(figsize=(6,4))
-    ax.plot(rmsd_ref, label="MD", alpha=0.8)
-    ax.plot(rmsd_gen, label="Generated", alpha=0.8)
-    ax.set_xlabel("Frame")
-    ax.set_ylabel("RMSD (Å)")
-    ax.set_title("Internal RMSD")
-    ax.legend()
-    return fig
-
-
-# ==========================
-# RMSF
-# ==========================
-def plot_rmsf(res_ids, rmsf_ref, rmsf_gen):
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.plot(res_ids, rmsf_ref, label="MD")
-    ax.plot(res_ids, rmsf_gen, label="Generated")
-    ax.set_xlabel("Residue index")
-    ax.set_ylabel("RMSF (Å)")
-    ax.set_title("Residue-wise RMSF")
-    ax.legend()
-    return fig
-
-
-# ==========================
-# Radius of Gyration
-# ==========================
-def plot_rg(rg_ref, rg_gen):
-    fig, ax = plt.subplots(figsize=(6,4))
-    ax.plot(rg_ref * 10.0, label="MD")
-    ax.plot(rg_gen * 10.0, label="Generated")
-    ax.set_xlabel("Frame")
-    ax.set_ylabel("Rg (Å)")
-    ax.set_title("Radius of Gyration")
-    ax.legend()
-    return fig
-
-# ==========================
-# Ramachandran
-# ==========================
-def plot_ramachandran(phi_ref, psi_ref, phi_gen, psi_gen):
-    fig, axes = plt.subplots(1, 2, figsize=(10,4), sharex=True, sharey=True)
-
-    axes[0].hist2d(phi_ref, psi_ref, bins=100, cmap="Blues")
-    axes[0].set_title("MD")
-    axes[0].set_xlabel("Phi (deg)")
-    axes[0].set_ylabel("Psi (deg)")
-
-    axes[1].hist2d(phi_gen, psi_gen, bins=100, cmap="Reds")
-    axes[1].set_title("Generated")
-    axes[1].set_xlabel("Phi (deg)")
-
-    fig.suptitle("Ramachandran Plot")
-    return fig
-
-
-# ==========================
-# Contact Maps
-# ==========================
-def plot_contact_map(contact_map, title="Contact Map"):
-    fig, ax = plt.subplots(figsize=(6,5))
-    im = ax.imshow(contact_map, cmap="viridis", origin="lower")
-    ax.set_title(title)
-    ax.set_xlabel("Residue index")
-    ax.set_ylabel("Residue index")
-    fig.colorbar(im, ax=ax, label="Contact probability")
-    return fig
-
-
-def plot_contact_map_difference(cm_gen, cm_ref):
-    diff = cm_gen - cm_ref
-    fig, ax = plt.subplots(figsize=(6,5))
-    im = ax.imshow(diff, cmap="bwr", origin="lower", vmin=-1, vmax=1)
-    ax.set_title("Δ Contact Map (Gen − MD)")
-    fig.colorbar(im, ax=ax, label="Δ Contact probability")
-    return fig
-
-
-# ==========================
-# PCA
-# ==========================
-def plot_pca(X_ref_pca, X_gen_pca):
-    fig, ax = plt.subplots(figsize=(6,5))
-    ax.scatter(X_ref_pca[:,0], X_ref_pca[:,1],
-               s=10, alpha=0.5, label="MD")
-    ax.scatter(X_gen_pca[:,0], X_gen_pca[:,1],
-               s=10, alpha=0.5, label="Generated")
-    ax.set_xlabel("PC1")
-    ax.set_ylabel("PC2")
-    ax.set_title("PCA Projection (MD fit)")
-    ax.legend()
-    return fig
-
-
-
-def _ensure_dir(path):
+# ============================================================
+def save(fig, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-
-def save_figure(fig, path, dpi=300):
-    _ensure_dir(path)
-    fig.savefig(path, dpi=dpi, bbox_inches="tight")
+    fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
+
+
+# ============================================================
+# 3-panel RMSD
+# ============================================================
+def plot_rmsd_panels(rmsd_refs, rmsd_gens):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharey=True)
+
+    for i, ax in enumerate(axes):
+        ax.plot(rmsd_refs[i], color="black", lw=2, label="MD")
+        ax.plot(rmsd_gens[i], color="tab:blue", alpha=0.8, label="GEN")
+        ax.set_title(f"rep_{i}")
+        ax.set_xlabel("Frame")
+
+    axes[0].set_ylabel("RMSD (Å)")
+    axes[0].legend()
+    fig.suptitle("RMSD: MD vs Generated (replica-wise)")
+    return fig
+
+
+# ============================================================
+# 3-panel RMSF
+# ============================================================
+def plot_rmsf_panels(res_ids, rmsf_refs, rmsf_gens):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharey=True)
+
+    for i, ax in enumerate(axes):
+        ax.plot(res_ids, rmsf_refs[i], color="black", lw=2, label="MD")
+        ax.plot(res_ids, rmsf_gens[i], color="tab:blue", alpha=0.8, label="GEN")
+        ax.set_title(f"rep_{i}")
+        ax.set_xlabel("Residue")
+
+    axes[0].set_ylabel("RMSF (Å)")
+    axes[0].legend()
+    fig.suptitle("RMSF: MD vs Generated (replica-wise)")
+    return fig
+
+
+# ============================================================
+# 3-panel Rg
+# ============================================================
+def plot_rg_panels(rg_refs, rg_gens):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharey=True)
+
+    for i, ax in enumerate(axes):
+        ax.plot(rg_refs[i], color="black", lw=2, label="MD")
+        ax.plot(rg_gens[i], color="tab:blue", alpha=0.8, label="GEN")
+        ax.set_title(f"rep_{i}")
+        ax.set_xlabel("Frame")
+
+    axes[0].set_ylabel("Rg (Å)")
+    axes[0].legend()
+    fig.suptitle("Radius of Gyration (replica-wise)")
+    return fig
+
+
+# ============================================================
+# 3-panel PCA
+# ============================================================
+def plot_pca_panels(X_refs, X_gens):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4), sharex=True, sharey=True)
+
+    for i, ax in enumerate(axes):
+        ax.scatter(X_refs[i][:,0], X_refs[i][:,1],
+                   s=10, alpha=0.4, color="gray", label="MD")
+        ax.scatter(X_gens[i][:,0], X_gens[i][:,1],
+                   s=10, alpha=0.6, color="tab:blue", label="GEN")
+        ax.set_title(f"rep_{i}")
+        ax.set_xlabel("PC1")
+
+    axes[0].set_ylabel("PC2")
+    axes[0].legend()
+    fig.suptitle("PCA Projection (MD-fit, replica-wise)")
+    return fig
+
+
+# ============================================================
+# 3-panel Contact Map (MD | GEN)
+# ============================================================
+def plot_contact_map_panels(cm_refs, cm_gens):
+    fig, axes = plt.subplots(3, 2, figsize=(8, 12))
+
+    for i in range(3):
+        im1 = axes[i,0].imshow(cm_refs[i], origin="lower", cmap="viridis")
+        axes[i,0].set_title(f"MD rep_{i}")
+
+        im2 = axes[i,1].imshow(cm_gens[i], origin="lower", cmap="viridis")
+        axes[i,1].set_title(f"GEN rep_{i}")
+
+    fig.colorbar(im2, ax=axes.ravel().tolist(), shrink=0.6)
+    fig.suptitle("Contact Maps (replica-wise)")
+    return fig
+
+
+# ============================================================
+# 3-panel Ramachandran
+# ============================================================
+def plot_rama_panels(phi_refs, psi_refs, phi_gens, psi_gens):
+    fig, axes = plt.subplots(3, 2, figsize=(8, 12), sharex=True, sharey=True)
+
+    for i in range(3):
+        axes[i,0].hist2d(phi_refs[i], psi_refs[i], bins=100, cmap="Blues")
+        axes[i,0].set_title(f"MD rep_{i}")
+
+        axes[i,1].hist2d(phi_gens[i], psi_gens[i], bins=100, cmap="Reds")
+        axes[i,1].set_title(f"GEN rep_{i}")
+
+    fig.suptitle("Ramachandran Plots (replica-wise)")
+    return fig
