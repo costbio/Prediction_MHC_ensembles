@@ -275,8 +275,8 @@ Key parameters:
 
 Run analysis notebooks for:
 
-* RMSD / RMSF
-* PCA
+* RMSD 
+* RMSF
 * RMSIP
 
 
