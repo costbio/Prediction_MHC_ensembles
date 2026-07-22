@@ -164,7 +164,6 @@ Adjust the input paths and training parameters before running the script.
 The pipeline produces:
 
 - trained models
-- reconstructed trajectories
 - generated trajectories
 - filtered trajectories
 - training history
