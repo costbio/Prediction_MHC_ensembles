@@ -170,16 +170,7 @@ def run_pipeline(
 
         np.save(os.path.join(out_dir_frac, f"history_{frac_percent}.npy"), history)
 
-        # 6) RECONSTRUCTION (use test coordinates)
-        model.eval()
-        with torch.no_grad():
-            X_test_tensor = torch.tensor(X_test_s, device=device, dtype=torch.float32)
-            X_recon_s, _, _ = model(X_test_tensor)
-            X_recon = scaler.inverse_transform(X_recon_s.cpu().numpy())
-
-        recon_xyz = X_recon.reshape(-1, traj.n_atoms, 3)
-        save_xtc(ref, recon_xyz, os.path.join(out_dir_frac, "reconstructed_test.xtc"))
-        # 7) FILTERED GENERATION
+        # 6) FILTERED GENERATION
 
         gen_xyz, gen_stats, _ = generate_filtered_trajectory(
             model=model,
