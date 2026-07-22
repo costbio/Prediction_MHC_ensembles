@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 '''
 Input: flattened backbone xyz coordinates
 Encoder: xyz -> hidden representation -> μ, logσ²
